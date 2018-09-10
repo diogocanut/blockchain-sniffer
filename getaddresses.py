@@ -25,8 +25,3 @@ def get_node_addresses():
         return found_peers
     except Exception:
         return None
-
-peers = get_node_addresses()
-print("address list")
-for peer in peers:
-    print(peer)
