@@ -36,7 +36,6 @@ def create_version_message(peers, peer_index):
     return magic + command + length + checksum + payload
 
 
-
 def encode_received_message(recv_message):
 
     recv_magic = recv_message[:4].hex()
@@ -47,4 +46,3 @@ def encode_received_message(recv_message):
     recv_version = struct.unpack("i", recv_payload[:4])
 
     return (recv_magic, recv_command, recv_length, recv_checksum, recv_payload, recv_version)
-

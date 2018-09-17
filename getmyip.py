@@ -1,6 +1,7 @@
 import requests
 import re
 
+
 def get_my_ip():
 
     response = requests.get('http://checkip.dyndns.org').text

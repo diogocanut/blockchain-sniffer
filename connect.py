@@ -3,6 +3,7 @@ import time
 
 from createmessage import create_version_message, encode_received_message
 
+
 def get_node_addresses():
 
     dns_seeds = [
@@ -37,16 +38,18 @@ def connect(peers, peer_index, sock):
     except Exception:
         return connect(peers, peer_index+1, sock)
 
+
 def make_connection():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     peers = get_node_addresses()
-    peer_index = connect(peers, 2, sock)
-    sock.send(create_version_message(peers, peer_index))
-    time.sleep(1)
+    if peers is not None:
+        peer_index = connect(peers, 2, sock)
+        sock.send(create_version_message(peers, peer_index))
+        time.sleep(1)
 
-    encoded_values = encode_received_message(sock.recv(8192))
-    print("Version: ", encoded_values[-1])
-
-
-
-
+        encoded_values = encode_received_message(sock.recv(8192))
+        y = sock.recv(1000)
+        print("Version: ", encoded_values[-1])
+        print(y)
+    else:
+        print("No peer founded")
