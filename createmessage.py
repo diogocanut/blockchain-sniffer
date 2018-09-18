@@ -8,6 +8,15 @@ import hashlib
 from getmyip import get_my_ip
 
 
+
+# def makeMessage(magic, command, payload):
+#     checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
+#     return struct.pack('<L12sL4s', magic, command, len(payload), checksum) + payload
+
+
+# def getTxMsg(payload):
+#   return makeMessage(magic, 'tx', payload)
+
 def create_version_message(peers, peer_index):
 
     # The current protocol version, look it up under https://bitcoin.org/en/developer-reference#protocol-versions

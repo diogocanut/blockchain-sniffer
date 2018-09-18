@@ -1,7 +1,9 @@
 import socket
 import time
+import codecs
 
 from createmessage import create_version_message, encode_received_message
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 def get_node_addresses():
@@ -30,26 +32,37 @@ def get_node_addresses():
         return None
 
 
-def connect(peers, peer_index, sock):
+def connect_peers(peers, peer_index):
+    for p in range(peer_index, len(peers)):
+        try:
+            print("Trying to connect to ", peers[p])
+            err = sock.connect(peers[p])
+            return p
+        except Exception:
+            pass
+
+
+def connect_ip(ip):
     try:
-        print("Trying to connect to ", peers[peer_index])
-        err = sock.connect(peers[peer_index])
-        return peer_index
+        err = socket.connect(ip)
+        return ip
     except Exception:
-        return connect(peers, peer_index+1, sock)
+        pass
 
 
 def make_connection():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     peers = get_node_addresses()
-    if peers is not None:
-        peer_index = connect(peers, 2, sock)
-        sock.send(create_version_message(peers, peer_index))
-        time.sleep(1)
 
-        encoded_values = encode_received_message(sock.recv(8192))
-        y = sock.recv(1000)
-        print("Version: ", encoded_values[-1])
-        print(y)
-    else:
-        print("No peer founded")
+    peer_index = connect_peers(peers, 2)
+    time.sleep(1)
+    sock.send(create_version_message(peers, peer_index))
+
+
+def message():
+    encoded_values = encode_received_message(sock.recv(8192))
+    print("Version: ", encoded_values[-1])
+
+
+if __name__ == '__main__':
+    make_connection()
+    message()
