@@ -2,7 +2,7 @@ import socket
 import time
 import codecs
 
-from createmessage import create_version_message, encode_received_message
+from createmessage import create_version_message, encode_received_message, create_addr_message, create_tx_message
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
@@ -51,18 +51,25 @@ def connect_ip(ip):
 
 
 def make_connection():
-    peers = get_node_addresses()
 
-    peer_index = connect_peers(peers, 2)
+    peers = [('24.6.189.26', 8333)]
+
+    peer_index = connect_peers(peers, 0)
+
     time.sleep(1)
+    print("Connected to: ", peers[peer_index][0])
     sock.send(create_version_message(peers, peer_index))
+    version = encode_received_message(sock.recv(166))
+    verack = sock.recv(80)
+    print(verack)
+    print(version[-1])
+
+    sock.send(create_tx_message(peers, peer_index))
+    msg = sock.recv(8192)
+    print(msg)
 
 
-def message():
-    encoded_values = encode_received_message(sock.recv(8192))
-    print("Version: ", encoded_values[-1])
 
 
 if __name__ == '__main__':
     make_connection()
-    message()

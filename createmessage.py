@@ -17,7 +17,7 @@ from getmyip import get_my_ip
 # def getTxMsg(payload):
 #   return makeMessage(magic, 'tx', payload)
 
-def create_version_message(peers, peer_index):
+def create_message(peers, peer_index, command):
 
     # The current protocol version, look it up under https://bitcoin.org/en/developer-reference#protocol-versions
     version = struct.pack("i", 70015)
@@ -38,11 +38,25 @@ def create_version_message(peers, peer_index):
               add_trans_services + add_trans_ip + add_trans_port + nonce + user_agent_bytes + starting_height + relay
 
     magic = bytes.fromhex("F9BEB4D9")
-    command = b"version" + 5 * b"\00"
     length = struct.pack("I", len(payload))
     checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
 
     return magic + command + length + checksum + payload
+
+
+def create_version_message(peers, peer_index):
+    command = b"version" + 5 * b"\00"
+    return create_message(peers, peer_index, command)
+
+
+def create_addr_message(peers, peer_index):
+    command = b"addr" + 5 * b"\00"
+    return create_message(peers, peer_index, command)
+
+
+def create_tx_message(peers, peer_index):
+    command = b"tx" + 5 * b"\00"
+    return create_message(peers, peer_index, command)
 
 
 def encode_received_message(recv_message):
