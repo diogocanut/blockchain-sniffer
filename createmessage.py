@@ -1,4 +1,3 @@
-import socket
 import time
 import struct
 import random
@@ -7,15 +6,6 @@ import hashlib
 
 from getmyip import get_my_ip
 
-
-
-# def makeMessage(magic, command, payload):
-#     checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[:4]
-#     return struct.pack('<L12sL4s', magic, command, len(payload), checksum) + payload
-
-
-# def getTxMsg(payload):
-#   return makeMessage(magic, 'tx', payload)
 
 def create_message(peers, peer_index, command):
 
@@ -51,6 +41,11 @@ def create_version_message(peers, peer_index):
 
 def create_addr_message(peers, peer_index):
     command = b"addr" + 5 * b"\00"
+    return create_message(peers, peer_index, command)
+
+
+def create_verack_message(peers, peer_index):
+    command = b"verack" + 5 * b"\00"
     return create_message(peers, peer_index, command)
 
 

@@ -1,8 +1,13 @@
 import socket
 import time
-import codecs
 
-from createmessage import create_version_message, encode_received_message, create_addr_message, create_tx_message
+from createmessage import (
+    create_version_message,
+    encode_received_message,
+    create_addr_message,
+    create_verack_message,
+    create_tx_message
+    )
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
@@ -59,16 +64,21 @@ def make_connection():
     time.sleep(1)
     print("Connected to: ", peers[peer_index][0])
     sock.send(create_version_message(peers, peer_index))
+
     version = encode_received_message(sock.recv(166))
-    verack = sock.recv(80)
-    print(verack)
     print(version[-1])
+
+    # verack = sock.recv(80)
+
+    # print(verack)
+
+    sock.send(create_verack_message(peers, peer_index))
+    verack2 = sock.recv(80)
+    print(verack2)
 
     sock.send(create_tx_message(peers, peer_index))
     msg = sock.recv(8192)
     print(msg)
-
-
 
 
 if __name__ == '__main__':
