@@ -64,3 +64,18 @@ def encode_received_message(recv_message):
     recv_version = struct.unpack("i", recv_payload[:4])
 
     return (recv_magic, recv_command, recv_length, recv_checksum, recv_payload, recv_version)
+
+
+def encode_addr_message(recv_message):
+
+    recv_time = recv_message[:4]
+    recv_services = recv_message[4:12]
+    recv_ip = recv_message[12:28]
+    recv_port = recv_message[:2]
+
+    return (
+        recv_time,
+        recv_services,
+        recv_ip,
+        recv_port,
+    )

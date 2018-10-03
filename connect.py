@@ -4,6 +4,7 @@ import time
 from createmessage import (
     create_version_message,
     encode_received_message,
+    encode_addr_message,
     create_addr_message,
     create_verack_message,
     create_tx_message
@@ -73,8 +74,8 @@ def make_connection():
     # verack2 = sock.recv(80)
     # print(verack2)
 
-    sock.send(create_tx_message(peers, peer_index))
-    msg = encode_received_message(sock.recv(8192))
+    sock.send(create_addr_message(peers, peer_index))
+    msg = encode_addr_message(sock.recv(8192))
     print(msg)
 
 
