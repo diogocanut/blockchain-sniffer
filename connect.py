@@ -57,8 +57,9 @@ def connect_ip(ip):
 
 def make_connection():
 
-    peers = [('24.6.189.26', 8333)]
+    # Worked on 108.170.45.186
 
+    peers = get_node_addresses()
     peer_index = connect_peers(peers, 0)
 
     time.sleep(1)
@@ -68,16 +69,12 @@ def make_connection():
     version = encode_received_message(sock.recv(166))
     print(version[-1])
 
-    # verack = sock.recv(80)
-
-    # print(verack)
-
     sock.send(create_verack_message(peers, peer_index))
-    verack2 = sock.recv(80)
-    print(verack2)
+    # verack2 = sock.recv(80)
+    # print(verack2)
 
     sock.send(create_tx_message(peers, peer_index))
-    msg = sock.recv(8192)
+    msg = encode_received_message(sock.recv(8192))
     print(msg)
 
 
