@@ -2,9 +2,12 @@ import time
 import struct
 import random
 import hashlib
+import socket
 
 
 from getmyip import get_my_ip
+
+MY_VERSION = 70015
 
 
 def create_message(peers, peer_index, command):
@@ -79,3 +82,71 @@ def encode_addr_message(recv_message):
         recv_ip,
         recv_port,
     )
+
+
+class CAddress(object):
+    def __init__(self):
+        self.nServices = 1
+        self.pchReserved = "\x00" * 10 + "\xff" * 2
+        self.ip = "0.0.0.0"
+        self.port = 0
+
+    def deserialize(self, f):
+        self.nServices = struct.unpack("<Q", f.read(8))[0]
+        self.pchReserved = f.read(12)
+        self.ip = socket.inet_ntoa(f.read(4))
+        self.port = struct.unpack(">H", f.read(2))[0]
+
+    def serialize(self):
+        nServices = struct.pack("<Q", self.nServices)
+        pchReserved = self.pchReserved
+        ip = socket.inet_aton(self.ip)
+        port = struct.pack(">H", self.port)
+        return (nServices, pchReserved, ip, port)
+
+    def __repr__(self):
+        return "CAddress(nServices=%i ip=%s port=%i)" % (self.nServices, self.ip, self.port)
+
+
+class msg_version(object):
+    command = "version"
+
+    def __init__(self):
+        self.nVersion = MY_VERSION
+        self.nServices = 1
+        self.nTime = int(time.time())
+        self.addrTo = CAddress()
+        self.addrFrom = CAddress()
+        self.nNonce = random.getrandbits(64)
+        self.nStartingHeight = -1
+
+    def deserialize(self, f):
+        self.nVersion = struct.unpack("<i", f.read(4))[0]
+        if self.nVersion == 10300:
+            self.nVersion = 300
+        self.nServices = struct.unpack("<Q", f.read(8))[0]
+        self.nTime = struct.unpack("<q", f.read(8))[0]
+        self.addrTo = CAddress()
+        self.addrTo.deserialize(f)
+        if self.nVersion >= 106:
+            self.addrFrom = CAddress()
+            self.addrFrom.deserialize(f)
+            self.nNonce = struct.unpack("<Q", f.read(8))[0]
+            if self.nVersion >= 209:
+                self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
+            else:
+                self.nStartingHeight = None
+        else:
+            self.addrFrom = None
+            self.nNonce = None
+            self.nStartingHeight = None
+
+    def serialize(self):
+        nVersion = struct.pack("<i", self.nVersion)
+        nServices = struct.pack("<Q", self.nServices)
+        nTime = struct.pack("<q", self.nTime)
+        addrTo = self.addrTo.serialize()
+        addrFrom = self.addrFrom.serialize()
+        nNonce = struct.pack("<Q", self.nNonce)
+        nStartingHeight = struct.pack("<i", self.nStartingHeight)
+        return nVersion + nServices + nTime + addrTo + addrFrom + nNonce + nStartingHeight

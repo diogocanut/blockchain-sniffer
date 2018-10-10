@@ -1,5 +1,6 @@
-import socket
+import asyncore, socket
 import time
+import struct
 
 from createmessage import (
     create_version_message,
@@ -7,7 +8,8 @@ from createmessage import (
     encode_addr_message,
     create_addr_message,
     create_verack_message,
-    create_tx_message
+    create_tx_message,
+    msg_version,
     )
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -79,5 +81,65 @@ def make_connection():
     print(msg)
 
 
+class NodeConn(asyncore.dispatcher):
+
+    def __init__(self, dstaddr, dstport):
+        asyncore.dispatcher.__init__(self)
+        self.dstaddr = dstaddr
+        self.dstport = dstport
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sendbuf = ""
+        self.recvbuf = ""
+        self.ver_send = 209
+        self.ver_recv = 209
+        self.last_sent = 0
+        self.state = "connecting"
+
+        version_message = msg_version()
+        self.send_message(version_message, True)
+        print("\n Blockchain transactions analyzer")
+        print("Connection to peer: ", self.dstaddr)
+        try:
+            self.connect((dstaddr, dstport))
+        except:
+            self.handle_close()
+
+    def handle_connect(self):
+        print("Connection realized\n")
+        self.state = "connected"
+
+    def handle_close(self):
+        print("Ending connection")
+        self.state = "closed"
+        self.recvbuf = ""
+        self.sendbuf = ""
+        try:
+            self.close()
+        except:
+            pass
+
+    def send_message(self, message, pushbuf=False):
+        if self.state != "connected" and not pushbuf:
+            return
+        print(message)
+        command = message.command
+        data = message.serialize()
+        tmsg = "\xf9\xbe\xb4\xd9"
+        tmsg += command
+        tmsg += "\x00" * (12 - len(command))
+        tmsg += str(struct.pack("<I", len(data)))
+        # if self.ver_send >= 209:
+        #     th = sha256(data)
+        #     h = sha256(th)
+        #     tmsg += h[:4]
+        tmsg += str(data)
+        msg2 = create_version_message(('108.170.45.186', 8333), 0)
+        print(msg2)
+        print(tmsg)
+        self.sendbuf += tmsg
+        self.last_sent = time.time()
+
+
 if __name__ == '__main__':
-    make_connection()
+    c = NodeConn('108.170.45.186', 8333)
+    asyncore.loop()
