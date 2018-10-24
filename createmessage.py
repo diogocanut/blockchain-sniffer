@@ -38,6 +38,9 @@ MY_VERSION = 70015
 MY_SUBVERSION = ".13"
 
 
+transactions = {}
+
+
 def new_block_event(block):
     if block.is_valid():
         print("\n - Valid Block: %s") % block.hash
@@ -45,9 +48,13 @@ def new_block_event(block):
         print("\n - Invalid Block: %s") % block.hash
 
 
-def new_transaction_event(tx):
+def new_transaction_event(tx, file):
     if tx.is_valid():
         print("\n - Valid TX: %s\n") % tx.hash
+        if tx.hash not in transactions:
+            transactions[tx.hash] = tx
+            file.write(str({'hash': tx.hash, 'tx': tx}))
+            file.flush()
         for txout in tx.vout:
             print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
     else:

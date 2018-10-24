@@ -73,16 +73,17 @@ class NodeConn(asyncore.dispatcher):
         "ping": msg_ping
     }
 
-    def __init__(self, dstaddr, dstport):
+    def __init__(self, host, file):
         asyncore.dispatcher.__init__(self)
-        self.dstaddr = dstaddr
-        self.dstport = dstport
+        self.dstaddr = host[0]
+        self.dstport = host[1]
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sendbuf = ""
         self.recvbuf = ""
         self.ver_send = 209
         self.ver_recv = 209
         self.last_sent = 0
+        self.file = file
         self.state = "connecting"
 
         vt = msg_version()
@@ -94,7 +95,7 @@ class NodeConn(asyncore.dispatcher):
         print("\n Blockchain transactions analyzer")
         print("Connection to peer: ", self.dstaddr)
         try:
-            self.connect((dstaddr, dstport))
+            self.connect((self.dstaddr, self.dstport))
         except:
             self.handle_close()
 
@@ -214,7 +215,7 @@ class NodeConn(asyncore.dispatcher):
             if len(want.inv):
                 self.send_message(want)
         elif message.command == "tx":
-            new_transaction_event(message.tx)
+            new_transaction_event(message.tx, self.file)
 
         elif message.command == "block":
             new_block_event(message.block)
@@ -222,7 +223,12 @@ class NodeConn(asyncore.dispatcher):
 
 if __name__ == '__main__':
     hosts = get_node_addresses()
+
+    f = open('transactions.txt', 'a')
+
     for host in hosts:
-        c = NodeConn(host[0], host[1])
+        c = NodeConn(host, f)
 
     asyncore.loop()
+
+    f.close()
