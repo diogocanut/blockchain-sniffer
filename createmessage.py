@@ -53,7 +53,7 @@ def new_transaction_event(tx, file):
         print("\n - Valid TX: %s\n") % tx.hash
         if tx.hash not in transactions:
             transactions[tx.hash] = tx
-            file.write(str({'hash': tx.hash, 'tx': tx}))
+            file.write("hash: {}\n\t{}\n\n".format(tx.hash, tx))
             file.flush()
         for txout in tx.vout:
             print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
@@ -168,7 +168,7 @@ class CTxIn(object):
         return r
 
     def __repr__(self):
-        return "CTxIn(prevout=%s scriptSig=%s nSequence=%i)" % (
+        return "\n\tCTxIn(\n\t\tprevout=%s \n\t\tscriptSig=%s \n\t\tnSequence=%i)" % (
             repr(self.prevout),
             binascii.hexlify(self.scriptSig),
             self.nSequence
@@ -197,7 +197,7 @@ class CTxOut(object):
         return r
 
     def __repr__(self):
-        return "CTxOut(nValue=%i.%08i scriptPubKey=%s)" % (
+        return "\n\tCTxOut(\n\t\tnValue=%i.%08i \n\t\tscriptPubKey=%s)" % (
             self.nValue // 100000000,
             self.nValue % 100000000,
             binascii.hexlify(self.scriptPubKey)
@@ -240,7 +240,7 @@ class CTransaction(object):
         return True
 
     def __repr__(self):
-        return "CTransaction(nVersion=%i vin=%s vout=%s nLockTime=%i)" % (
+        return "CTransaction(nVersion=%i \n\tvin=%s \n\tvout=%s nLockTime=%i\n\t)" % (
             self.nVersion,
             repr(self.vin),
             repr(self.vout),
