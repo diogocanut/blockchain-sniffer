@@ -38,6 +38,16 @@ MY_VERSION = 70015
 MY_SUBVERSION = ".13"
 
 
+OPCODES = {
+    "a9": "OP_HASH160",
+    "aa": "OP_HASH256",
+    "a8": "OP_SHA256",
+    "a7": "OP_SHA1",
+    "14": "OP_PUSH_20",
+    "88": "OP_EQUALVERIFY",
+    "ac": "OP_CHECKSIG",
+}
+
 transactions = {}
 
 
@@ -57,6 +67,11 @@ def new_transaction_event(tx, file):
             file.flush()
         for txout in tx.vout:
             print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
+            script = binascii.hexlify(txout.scriptPubKey)
+            for x in range(0,len(script)-1):
+                if script[x:x+2] in OPCODES.keys():
+                    op_code = OPCODES[script[x:x+2]]
+                    print("Transaction opcode: {0}".format(op_code))
     else:
         print("\n - Invalid TX: %s" % tx.hash)
 
