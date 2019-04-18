@@ -12,6 +12,8 @@ import hashlib
 
 from getmyip import get_my_ip
 
+from opcodes import OPCODES
+
 from utils import (
     sha256,
     hash256,
@@ -37,16 +39,6 @@ from utils import (
 MY_VERSION = 70015
 MY_SUBVERSION = ".13"
 
-
-OPCODES = {
-    "a9": "OP_HASH160",
-    "aa": "OP_HASH256",
-    "a8": "OP_SHA256",
-    "a7": "OP_SHA1",
-    "14": "OP_PUSH_20",
-    "88": "OP_EQUALVERIFY",
-    "ac": "OP_CHECKSIG",
-}
 
 transactions = {}
 
