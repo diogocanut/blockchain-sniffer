@@ -42,7 +42,6 @@ MY_SUBVERSION = ".13"
 
 transactions = {}
 
-
 def new_block_event(block):
     if block.is_valid():
         print("\n - Valid Block: %s") % block.hash
@@ -60,10 +59,11 @@ def new_transaction_event(tx, file):
         for txout in tx.vout:
             print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
             script = binascii.hexlify(txout.scriptPubKey)
+            op_code = []
             for x in range(0,len(script)-1):
                 if script[x:x+2] in OPCODES.keys():
-                    op_code = OPCODES[script[x:x+2]]
-                    print("Transaction opcode: {0}".format(op_code))
+                    op_code.append(OPCODES[script[x:x+2]])
+            print("Transaction opcodes: {0}".format(op_code))
     else:
         print("\n - Invalid TX: %s" % tx.hash)
 
