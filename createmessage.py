@@ -11,54 +11,10 @@ import hashlib
 
 
 from getmyip import get_my_ip
-
-from utils import (
-    sha256,
-    hash256,
-    b58encode,
-    hash_160_to_bc_address,
-    deser_string,
-    ser_string,
-    deser_uint256,
-    ser_uint256,
-    uint256_from_str,
-    uint256_from_compact,
-    deser_vector,
-    ser_vector,
-    deser_uint256_vector,
-    ser_uint256_vector,
-    deser_string_vector,
-    ser_string_vector,
-    deser_int_vector,
-    ser_int_vector,
-    show_debug_msg,
-    )
+from utils import *
 
 MY_VERSION = 70015
 MY_SUBVERSION = ".13"
-
-
-transactions = {}
-
-
-def new_block_event(block):
-    if block.is_valid():
-        print("\n - Valid Block: %s") % block.hash
-    else:
-        print("\n - Invalid Block: %s") % block.hash
-
-
-def new_transaction_event(tx, file):
-    if tx.is_valid():
-        print("\n - Valid TX: %s\n") % tx.hash
-        if tx.hash not in transactions:
-            transactions[tx.hash] = tx
-            file.write("hash: {}\n\t{}\n\n".format(tx.hash, tx))
-            file.flush()
-        for txout in tx.vout:
-            print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
-    else:
-        print("\n - Invalid TX: %s" % tx.hash)
 
 
 class CAddress(object):
