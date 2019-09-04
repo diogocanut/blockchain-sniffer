@@ -11,23 +11,9 @@ import time
 import struct
 import cStringIO
 
-from createmessage import (
-    new_block_event,
-    new_transaction_event,
-    sha256,
-    msg_version,
-    MY_VERSION,
-    msg_addr,
-    msg_inv,
-    msg_getblocks,
-    msg_getdata,
-    msg_verack,
-    msg_ping,
-    msg_tx,
-    msg_block,
-    msg_getaddr,
-    msg_alert,
-    )
+from createmessage import *
+from event import Event
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
@@ -39,22 +25,21 @@ def get_node_addresses():
         ("dnsseed.bitcoin.dashjr.org", 8333),
         ("seed.bitcoinstats.com", 8333),
         ("seed.bitnodes.io", 8333),
-        ("bitseed.xf2.org", 8333),
     ]
 
     found_peers = []
     try:
 
         for (ip_address, port) in dns_seeds:
-
             for info in socket.getaddrinfo(ip_address, port,
                                            socket.AF_INET, socket.SOCK_STREAM,
                                            socket.IPPROTO_TCP):
-
+                print(info)
                 found_peers.append((info[4][0], info[4][1]))
         return found_peers
-    except Exception:
-        return None
+    except Exception as e:
+        print(e)
+        return
 
 
 class NodeConn(asyncore.dispatcher):
@@ -85,6 +70,7 @@ class NodeConn(asyncore.dispatcher):
         self.last_sent = 0
         self.file = file
         self.state = "connecting"
+        self.event = Event()
 
         vt = msg_version()
         vt.addrTo.ip = self.dstaddr
@@ -215,10 +201,10 @@ class NodeConn(asyncore.dispatcher):
             if len(want.inv):
                 self.send_message(want)
         elif message.command == "tx":
-            new_transaction_event(message.tx, self.file)
+            self.event.new_transaction(message.tx, self.file)
 
         elif message.command == "block":
-            new_block_event(message.block)
+            self.event.new_block(message.block)
 
 
 if __name__ == '__main__':
@@ -226,7 +212,8 @@ if __name__ == '__main__':
 
     f = open('transactions.txt', 'a')
 
-    for host in hosts:
+    # TODO: check if hosts is None before iteration
+    for host in hosts[:5]:
         c = NodeConn(host, f)
 
     asyncore.loop()

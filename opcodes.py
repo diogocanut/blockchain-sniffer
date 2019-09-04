@@ -133,8 +133,6 @@ OPCODES = {
 }
 
 """
-
-
 # control
 OP_NOP = CScriptOp(0x61)
 OP_VER = CScriptOp(0x62)
