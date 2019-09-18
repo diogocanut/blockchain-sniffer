@@ -13,6 +13,7 @@ import cStringIO
 
 from createmessage import *
 from event import Event
+from db import *
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -24,7 +25,7 @@ def get_node_addresses():
         ("dnsseed.bluematt.me", 8333),
         ("dnsseed.bitcoin.dashjr.org", 8333),
         ("seed.bitcoinstats.com", 8333),
-        ("seed.bitnodes.io", 8333),
+        # ("seed.bitnodes.io", 8333),
     ]
 
     found_peers = []
@@ -34,7 +35,6 @@ def get_node_addresses():
             for info in socket.getaddrinfo(ip_address, port,
                                            socket.AF_INET, socket.SOCK_STREAM,
                                            socket.IPPROTO_TCP):
-                print(info)
                 found_peers.append((info[4][0], info[4][1]))
         return found_peers
     except Exception as e:
@@ -58,7 +58,7 @@ class NodeConn(asyncore.dispatcher):
         "ping": msg_ping
     }
 
-    def __init__(self, host, file):
+    def __init__(self, host, conn, cur):
         asyncore.dispatcher.__init__(self)
         self.dstaddr = host[0]
         self.dstport = host[1]
@@ -68,9 +68,8 @@ class NodeConn(asyncore.dispatcher):
         self.ver_send = 209
         self.ver_recv = 209
         self.last_sent = 0
-        self.file = file
         self.state = "connecting"
-        self.event = Event()
+        self.event = Event(conn, cur)
 
         vt = msg_version()
         vt.addrTo.ip = self.dstaddr
@@ -201,7 +200,7 @@ class NodeConn(asyncore.dispatcher):
             if len(want.inv):
                 self.send_message(want)
         elif message.command == "tx":
-            self.event.new_transaction(message.tx, self.file)
+            self.event.new_transaction(message.tx)
 
         elif message.command == "block":
             self.event.new_block(message.block)
@@ -210,12 +209,15 @@ class NodeConn(asyncore.dispatcher):
 if __name__ == '__main__':
     hosts = get_node_addresses()
 
-    f = open('transactions.txt', 'a')
+    # f = open('transactions.txt', 'a')
+    conn, cur = start_db()
 
     # TODO: check if hosts is None before iteration
-    for host in hosts[:5]:
-        c = NodeConn(host, f)
+    for host in hosts[:2]:
+        c = NodeConn(host, conn, cur)
 
     asyncore.loop()
 
-    f.close()
+    close_db(conn, cur)
+
+    # f.close()
