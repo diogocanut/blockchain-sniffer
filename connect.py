@@ -38,8 +38,9 @@ def get_node_addresses():
                 found_peers.append((info[4][0], info[4][1]))
         return found_peers
     except Exception as e:
+        # TODO: Raise this error.
         print(e)
-        return
+        return e
 
 
 class NodeConn(asyncore.dispatcher):

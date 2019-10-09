@@ -28,11 +28,13 @@ class Event(object):
                 # file.write("hash: {}\n\t{}\n\n".format(tx.hash, tx))
                 # file.flush()
                 self.cur.execute("INSERT INTO transactions (hash, n_version, lock_time) VALUES (%s, %s, %s)",
-                    (tx.hash, tx.nVersion, tx.nLockTime))
-                self.conn.commit()
+                    (tx.hash, tx.nVersion, tx.nLockTime))            
             for txout in tx.vout:
                 print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
                 script = binascii.hexlify(txout.scriptPubKey)
                 self.parser.get_script(script)
+                # self.cur.execute("INSERT INTO ctxouts (transaction_hash, script_pub_key, n_value) VALUES (%s, %s, %s)",
+                #     (tx.hash, script, tx.nValue))
+            self.conn.commit()
         else:
             print("\n - Invalid TX: %s" % tx.hash)
