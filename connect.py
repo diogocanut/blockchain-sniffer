@@ -11,9 +11,9 @@ import time
 import struct
 import cStringIO
 
-from createmessage import *
+from create_message import *
 from event import Event
-from db import *
+from database_interface import DatabaseInterface
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -38,9 +38,8 @@ def get_node_addresses():
                 found_peers.append((info[4][0], info[4][1]))
         return found_peers
     except Exception as e:
-        # TODO: Raise this error.
-        print(e)
-        return e
+        print('Invalid dns seed, error message: {}'.format(e))
+        raise
 
 
 class NodeConn(asyncore.dispatcher):
@@ -211,14 +210,15 @@ if __name__ == '__main__':
     hosts = get_node_addresses()
 
     # f = open('transactions.txt', 'a')
-    conn, cur = start_db()
+    database_interface = DatabaseInterface()
 
     # TODO: check if hosts is None before iteration
+    # TODO: move NodeConn to use database interface
     for host in hosts[:2]:
-        c = NodeConn(host, conn, cur)
+        c = NodeConn(host, database_interface.conn, database_interface.cur)
 
     asyncore.loop()
 
-    close_db(conn, cur)
+    database_interface.close()
 
     # f.close()
