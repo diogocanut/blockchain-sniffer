@@ -1,5 +1,5 @@
-import struct
 import hashlib
+import struct
 
 settings = {
     "debug": False,
@@ -27,9 +27,11 @@ def b58encode(v):
     result = b58chars[long_value] + result
     nPad = 0
     for c in v:
-        if c == '\0': nPad += 1
-        else: break
-    return (b58chars[0]*nPad) + result
+        if c == '\0':
+            nPad += 1
+        else:
+            break
+    return (b58chars[0] * nPad) + result
 
 
 def hash_160_to_bc_address(h160, version="\x00"):

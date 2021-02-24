@@ -1,16 +1,17 @@
-import struct
-import socket
-import asyncore
+# Bitcoin P2P network transactions analyser
+#
+# This file is based on https://github.com/sebicas/bitcoin-sniffer by @sebicas
+#
+# Distributed under the MIT/X11 software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import binascii
-import time
-import sys
-import re
 import random
-import cStringIO
-import hashlib
+import socket
+import struct
+import time
 
 
-from getmyip import get_my_ip
 from utils import *
 
 MY_VERSION = 70015
@@ -262,7 +263,7 @@ class CBlock(object):
         while len(hashes) > 1:
             newhashes = []
             for i in xrange(0, len(hashes), 2):
-                i2 = min(i+1, len(hashes)-1)
+                i2 = min(i + 1, len(hashes) - 1)
                 newhashes.append(hash256(hashes[i] + hashes[i2]))
             hashes = newhashes
         if uint256_from_str(hashes[0]) != self.hashMerkleRoot:

@@ -1,7 +1,5 @@
 import psycopg2
 from psycopg2 import sql
-import pandas_datareader as data
-
 
 
 class DatabaseInterface:
@@ -65,6 +63,3 @@ class DatabaseInterface:
     def close(self):
         self.cur.close()
         self.conn.close()
-
-
-

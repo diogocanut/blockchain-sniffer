@@ -1,48 +1,22 @@
 # Bitcoin P2P network transactions analyser
 #
-# This code is based on https://github.com/sebicas/bitcoin-sniffer by @sebicas
+# This file is based on https://github.com/sebicas/bitcoin-sniffer by @sebicas
 #
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import asyncore
 import socket
-import time
 import struct
-import cStringIO
+import time
+from StringIO import StringIO
 
 from create_message import *
+
 from event import Event
-from database_interface import DatabaseInterface
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-def get_node_addresses():
-
-    dns_seeds = [
-        ("seed.bitcoin.sipa.be", 8333),
-        ("dnsseed.bluematt.me", 8333),
-        ("dnsseed.bitcoin.dashjr.org", 8333),
-        ("seed.bitcoinstats.com", 8333),
-        # ("seed.bitnodes.io", 8333),
-    ]
-
-    found_peers = []
-    try:
-
-        for (ip_address, port) in dns_seeds:
-            for info in socket.getaddrinfo(ip_address, port,
-                                           socket.AF_INET, socket.SOCK_STREAM,
-                                           socket.IPPROTO_TCP):
-                found_peers.append((info[4][0], info[4][1]))
-        return found_peers
-    except Exception as e:
-        print('Invalid dns seed, error message: {}'.format(e))
-        raise
-
-
-class NodeConn(asyncore.dispatcher):
+class Connection(asyncore.dispatcher):
 
     messagemap = {
         "version": msg_version,
@@ -56,9 +30,10 @@ class NodeConn(asyncore.dispatcher):
         "block": msg_block,
         "getaddr": msg_getaddr,
         "ping": msg_ping
+
     }
 
-    def __init__(self, host, conn, cur):
+    def __init__(self, host, database):
         asyncore.dispatcher.__init__(self)
         self.dstaddr = host[0]
         self.dstport = host[1]
@@ -69,7 +44,7 @@ class NodeConn(asyncore.dispatcher):
         self.ver_recv = 209
         self.last_sent = 0
         self.state = "connecting"
-        self.event = Event(conn, cur)
+        self.event = Event(database)
 
         vt = msg_version()
         vt.addrTo.ip = self.dstaddr
@@ -126,36 +101,48 @@ class NodeConn(asyncore.dispatcher):
 
     def got_data(self):
         while True:
+
             if len(self.recvbuf) < 4:
                 return
+
             if self.recvbuf[:4] != "\xf9\xbe\xb4\xd9":
-                raise ValueError("got garbage %s" % repr(self.recvbuf))
+                raise ValueError("Got garbage %s" % repr(self.recvbuf))
+
             if self.ver_recv < 209:
-                if len(self.recvbuf) < 4 + 12 + 4:
+                if len(self.recvbuf) < 20:
                     return
-                command = self.recvbuf[4:4+12].split("\x00", 1)[0]
-                msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
+
+                command = self.recvbuf[4:16].split("\x00", 1)[0]
+                msglen = struct.unpack("<i", self.recvbuf[16:20])[0]
                 checksum = None
-                if len(self.recvbuf) < 4 + 12 + 4 + msglen:
+
+                if len(self.recvbuf) < 20 + msglen:
                     return
-                msg = self.recvbuf[4+12+4:4+12+4+msglen]
-                self.recvbuf = self.recvbuf[4+12+4+msglen:]
+
+                msg = self.recvbuf[20:20 + msglen]
+                self.recvbuf = self.recvbuf[20 + msglen:]
             else:
-                if len(self.recvbuf) < 4 + 12 + 4 + 4:
+
+                if len(self.recvbuf) < 24:
                     return
-                command = self.recvbuf[4:4+12].split("\x00", 1)[0]
-                msglen = struct.unpack("<i", self.recvbuf[4+12:4+12+4])[0]
-                checksum = self.recvbuf[4+12+4:4+12+4+4]
-                if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
+
+                command = self.recvbuf[4:16].split("\x00", 1)[0]
+                msglen = struct.unpack("<i", self.recvbuf[16:20])[0]
+                checksum = self.recvbuf[20:24]
+
+                if len(self.recvbuf) < 24 + msglen:
                     return
-                msg = self.recvbuf[4+12+4+4:4+12+4+4+msglen]
+
+                msg = self.recvbuf[24:24 + msglen]
                 th = sha256(msg)
                 h = sha256(th)
+
                 if checksum != h[:4]:
-                    raise ValueError("got bad checksum %s" % repr(self.recvbuf))
-                self.recvbuf = self.recvbuf[4+12+4+4+msglen:]
+                    raise ValueError("Bad checksum {}".format(repr(self.recvbuf)))
+                self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
+
             if command in self.messagemap:
-                f = cStringIO.StringIO(msg)
+                f = StringIO(msg)
                 t = self.messagemap[command]()
                 t.deserialize(f)
                 self.got_message(t)
@@ -171,10 +158,12 @@ class NodeConn(asyncore.dispatcher):
         tmsg += command
         tmsg += "\x00" * (12 - len(command))
         tmsg += struct.pack("<I", len(data))
+
         if self.ver_send >= 209:
             th = sha256(data)
             h = sha256(th)
             tmsg += h[:4]
+
         tmsg += data
         self.sendbuf += tmsg
         self.last_sent = time.time()
@@ -182,7 +171,7 @@ class NodeConn(asyncore.dispatcher):
     def got_message(self, message):
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(msg_ping())
-        if message.command  == "version":
+        if message.command == "version":
             if message.nVersion >= 209:
                 self.send_message(msg_verack())
             self.ver_send = min(MY_VERSION, message.nVersion)
@@ -204,21 +193,3 @@ class NodeConn(asyncore.dispatcher):
 
         elif message.command == "block":
             self.event.new_block(message.block)
-
-
-if __name__ == '__main__':
-    hosts = get_node_addresses()
-
-    # f = open('transactions.txt', 'a')
-    database_interface = DatabaseInterface()
-
-    # TODO: check if hosts is None before iteration
-    # TODO: move NodeConn to use database interface
-    for host in hosts[:2]:
-        c = NodeConn(host, database_interface.conn, database_interface.cur)
-
-    asyncore.loop()
-
-    database_interface.close()
-
-    # f.close()

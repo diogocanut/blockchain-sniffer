@@ -1,5 +1,6 @@
-import requests
 import re
+
+import requests
 
 
 def get_my_ip():
