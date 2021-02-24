@@ -139,7 +139,7 @@ class Connection(asyncore.dispatcher):
 
                 if checksum != h[:4]:
                     raise ValueError("Bad checksum {}".format(repr(self.recvbuf)))
-                self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
+                self.recvbuf = self.recvbuf[24 + msglen:]
 
             if command in self.messagemap:
                 f = StringIO(msg)
