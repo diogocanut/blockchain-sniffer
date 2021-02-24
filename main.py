@@ -11,7 +11,7 @@ import socket
 
 from connection import Connection
 
-from database_interface import DatabaseInterface
+from database import DatabaseInterface
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,7 +43,7 @@ def get_node_addresses():
 if __name__ == '__main__':
     hosts = get_node_addresses()
 
-    database_interface = DatabaseInterface()
+    database = DatabaseInterface()
 
     maxConnections = 2
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         raise IndexError('Hosts is None')
 
     for host in hosts[:maxConnections]:
-        c = Connection(host, database_interface)
+        c = Connection(host, database)
 
     asyncore.loop()
-    database_interface.close()
+    database.close()

@@ -1,4 +1,3 @@
-import binascii
 from parser import Parser
 
 
@@ -18,18 +17,17 @@ class Event(object):
     def new_transaction(self, tx):
         if tx.is_valid():
             print("\n - Valid TX: %s\n") % tx.hash
+
             if tx.hash not in self.transactions:
                 self.transactions[tx.hash] = tx
-                # TODO: CHANGE THE FILE TO DATABASE
-                # file.write("hash: {}\n\t{}\n\n".format(tx.hash, tx))
-                # file.flush()
-                self.database.cur.execute("INSERT INTO transactions (hash, n_version, lock_time) VALUES (%s, %s, %s)", (tx.hash, tx.nVersion, tx.nLockTime))
+
+                self.database.insert_transaction(tx)
+
             for txout in tx.vout:
                 print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
-                script = binascii.hexlify(txout.scriptPubKey)
-                self.parser.get_script(script)
-                # self.cur.execute("INSERT INTO ctxouts (transaction_hash, script_pub_key, n_value) VALUES (%s, %s, %s)",
-                #     (tx.hash, script, tx.nValue))
+                opcodes = self.parser.parse(txout.script())
+                self.database.insert_ctxout(tx, txout, opcodes)
+
             self.database.conn.commit()
         else:
             print("\n - Invalid TX: %s" % tx.hash)

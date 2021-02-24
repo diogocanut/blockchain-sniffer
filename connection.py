@@ -11,7 +11,7 @@ import struct
 import time
 from StringIO import StringIO
 
-from create_message import *
+from serializers import *
 
 from event import Event
 

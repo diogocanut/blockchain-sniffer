@@ -1,5 +1,4 @@
 import psycopg2
-from psycopg2 import sql
 
 
 class DatabaseInterface:
@@ -40,7 +39,9 @@ class DatabaseInterface:
                     transaction_hash TEXT NOT NULL,
                     script_pub_key TEXT NOT NULL,
                     n_value DECIMAL NOT NULL,
-                    op_codes TEXT NOT NULL,
+                    op_codes TEXT[] NOT NULL,
+                    amount DECIMAL NOT NULL,
+                    address TEXT NOT NULL,
                     PRIMARY KEY (transaction_hash, script_pub_key),
                     FOREIGN KEY (transaction_hash)
                         REFERENCES transactions (hash)
@@ -59,6 +60,25 @@ class DatabaseInterface:
         self.__connect()
         self.cur = self.conn.cursor()
         self.__initial_schema()
+
+    def insert_transaction(self, tx):
+        self.cur.execute(
+            """INSERT INTO transactions (hash, n_version, lock_time)
+            VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", (tx.hash, tx.nVersion, tx.nLockTime))
+
+    def insert_ctxout(self, tx, ctxout, opcodes):
+        script = ctxout.script()
+        self.cur.execute(
+            """INSERT INTO  CTxOuts (transaction_hash, script_pub_key, n_value,
+            op_codes, amount, address) VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
+            """, (tx.hash, script, ctxout.nValue, opcodes, ctxout.amount, ctxout.address))
+
+    def insert_ctxin(self, tx, ctxin):
+        # self.cur.execute("""INSERT INTO CTxIns (transaction_hash, prevout,
+        #     prevout_n, script_sig, n_sequence)
+        #     VALUES (%s, %s, %s)""", (tx.hash, tx.nVersion, tx.nLockTime))
+        pass
 
     def close(self):
         self.cur.close()

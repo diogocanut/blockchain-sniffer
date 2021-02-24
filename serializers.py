@@ -153,11 +153,14 @@ class CTxOut(object):
         r += ser_string(self.scriptPubKey)
         return r
 
+    def script(self):
+        return binascii.hexlify(self.scriptPubKey)
+
     def __repr__(self):
         return "\n\tCTxOut(\n\t\tnValue=%i.%08i \n\t\tscriptPubKey=%s)" % (
             self.nValue // 100000000,
             self.nValue % 100000000,
-            binascii.hexlify(self.scriptPubKey)
+            script()
         )
 
 

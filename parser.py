@@ -2,7 +2,7 @@ from opcodes import *
 
 
 class Parser(object):
-    def get_script(self, script):
+    def parse(self, script):
         op_code = []
         x = 0
         print("SCRIPT: {0}".format(script))
@@ -26,3 +26,4 @@ class Parser(object):
                 x = x + 2
                 print("OP INT: {0}".format(op_int))
         print("Transaction opcodes: {0}".format(op_code))
+        return op_code
