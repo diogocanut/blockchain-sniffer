@@ -21,4 +21,4 @@ Create a database named transactions on postgresql and configure psycopg2
 # TODO 
 - migrate to python3
 - finishe opcodes parser
-- store CtxIn transactions
+- store CtxIn transaction objects
