@@ -23,5 +23,5 @@ Create a database named transactions on postgresql and configure psycopg2
 - finishe opcodes parser
 - store CtxIn transaction objects
 
-# Distributed under the MIT/X11 software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ Distributed under the MIT/X11 software license, see the accompanying
+ file COPYING or http://www.opensource.org/licenses/mit-license.php.
