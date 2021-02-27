@@ -7,4 +7,18 @@ This sniffer realizes a X number of connections (set maxConnections variable) to
 every transaction or new block. Also storing transactions on postgresql with asyncore and a not completed feature to 
 parse transactions scriptPubKey into respectives opcodes.
 
-TODO: migrate to python3
+# Running
+
+Make sure you have python2.7 with pip installed.
+
+Create a database named transactions on postgresql and configure psycopg2
+
+`pip install requests`
+
+`python2.7 main.py`
+
+
+# TODO 
+- migrate to python3
+- finishe opcodes parser
+- store CtxIn transactions
