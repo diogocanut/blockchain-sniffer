@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     database = DatabaseInterface()
 
-    maxConnections = 20
+    maxConnections = 2
 
     if hosts is None:
         raise IndexError('Hosts is None')

@@ -72,6 +72,7 @@ class Connection(asyncore.dispatcher):
             self.close()
         except:
             pass
+        self.__init__
 
     def handle_read(self):
         try:

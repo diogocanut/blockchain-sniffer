@@ -21,7 +21,7 @@ Create a database named transactions on postgresql and configure psycopg2
 # TODO 
 - migrate to python3
 - finishe opcodes parser
-- store CtxIn transaction objects
+- store CtxIn transaction objects (done)
 
  Distributed under the MIT/X11 software license, see the accompanying
  file COPYING or http://www.opensource.org/licenses/mit-license.php.

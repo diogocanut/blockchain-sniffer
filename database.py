@@ -26,7 +26,7 @@ class DatabaseInterface:
             """
             CREATE TABLE IF NOT EXISTS CTxIns (
                     transaction_hash TEXT NOT NULL,
-                    prevout UUID NOT NULL,
+                    prevout TEXT NOT NULL,
                     prevout_n INTEGER NOT NULL,
                     script_sig TEXT NOT NULL,
                     n_sequence BIGINT NOT NULL,
@@ -81,7 +81,9 @@ class DatabaseInterface:
         script = ctxin.script()
         self.cur.execute("""INSERT INTO CTxIns (transaction_hash, prevout,
              prevout_n, script_sig, n_sequence)
-             VALUES (%s, %s, %s, %s, %s)""", (tx.hash, ctxin.prevout.hash, ctxin.prevout.n, script, ctxin.nSequence))
+             VALUES (%s, %s, %s, %s, %s)
+             ON CONFLICT DO NOTHING
+             """, (tx.hash, ctxin.prevout.hash, ctxin.prevout.n, script, ctxin.nSequence))
 
     def close(self):
         self.cur.close()

@@ -27,6 +27,8 @@ class Event(object):
                 print("     To: %s BTC: %.8f" % (txout.address, txout.amount))
                 opcodes = self.parser.parse(txout.script())
                 self.database.insert_ctxout(tx, txout, opcodes)
+            for txin in tx.vin:
+                self.database.insert_ctxin(tx, txin)
 
             self.database.conn.commit()
         else:
