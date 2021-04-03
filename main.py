@@ -45,13 +45,14 @@ if __name__ == '__main__':
 
     database = DatabaseInterface()
 
-    maxConnections = 2
+    maxConnections = 20
 
     if hosts is None:
         raise IndexError('Hosts is None')
 
-    for host in hosts[:maxConnections]:
+    for host in hosts:
         c = Connection(host, database)
 
     asyncore.loop()
+
     database.close()

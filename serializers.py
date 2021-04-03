@@ -124,10 +124,13 @@ class CTxIn(object):
         r += struct.pack("<I", self.nSequence)
         return r
 
+    def script(self):
+        return binascii.hexlify(self.scriptSig)
+
     def __repr__(self):
         return "\n\tCTxIn(\n\t\tprevout=%s \n\t\tscriptSig=%s \n\t\tnSequence=%i)" % (
             repr(self.prevout),
-            binascii.hexlify(self.scriptSig),
+            script(),
             self.nSequence
         )
 

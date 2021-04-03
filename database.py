@@ -1,4 +1,5 @@
 import psycopg2
+from datetime import datetime
 
 
 class DatabaseInterface:
@@ -17,7 +18,8 @@ class DatabaseInterface:
             CREATE TABLE IF NOT EXISTS transactions (
                 hash TEXT PRIMARY KEY NOT NULL,
                 n_version INTEGER NOT NULL,
-                lock_time INTEGER NOT NULL
+                lock_time INTEGER NOT NULL,
+                inserted_at TIMESTAMP NOT NULL
             )
             """,
 
@@ -62,9 +64,10 @@ class DatabaseInterface:
         self.__initial_schema()
 
     def insert_transaction(self, tx):
+        now = datetime.utcnow()
         self.cur.execute(
-            """INSERT INTO transactions (hash, n_version, lock_time)
-            VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", (tx.hash, tx.nVersion, tx.nLockTime))
+            """INSERT INTO transactions (hash, n_version, lock_time, inserted_at)
+            VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING""", (tx.hash, tx.nVersion, tx.nLockTime, now))
 
     def insert_ctxout(self, tx, ctxout, opcodes):
         script = ctxout.script()
@@ -75,10 +78,10 @@ class DatabaseInterface:
             """, (tx.hash, script, ctxout.nValue, opcodes, ctxout.amount, ctxout.address))
 
     def insert_ctxin(self, tx, ctxin):
-        # self.cur.execute("""INSERT INTO CTxIns (transaction_hash, prevout,
-        #     prevout_n, script_sig, n_sequence)
-        #     VALUES (%s, %s, %s)""", (tx.hash, tx.nVersion, tx.nLockTime))
-        pass
+        script = ctxin.script()
+        self.cur.execute("""INSERT INTO CTxIns (transaction_hash, prevout,
+             prevout_n, script_sig, n_sequence)
+             VALUES (%s, %s, %s, %s, %s)""", (tx.hash, ctxin.prevout.hash, ctxin.prevout.n, script, ctxin.nSequence))
 
     def close(self):
         self.cur.close()
